@@ -1987,6 +1987,386 @@ document.addEventListener(
   }
 );
 </script>
+
+<!-- =========================
+     ADMIN PANEL
+========================= -->
+<button
+  id="adminPanelButton"
+  class="package-btn"
+  style="display:none;"
+  onclick="openAdminPanel()"
+>
+  Admin Panel
+</button>
+  
+<section
+  id="adminPage"
+  class="page"
+  style="display:none;"
+>
+
+  <div class="section-title">
+    Admin Panel
+  </div>
+
+  <div class="package-card">
+
+    <div class="package-name">
+      Package Manager
+    </div>
+
+    <div class="package-desc">
+      Create and manage ZYNVERO packages.
+    </div>
+
+    <input
+      id="adminPackageName"
+      class="admin-input"
+      type="text"
+      placeholder="Package Name"
+    >
+
+    <input
+      id="adminPackagePrice"
+      class="admin-input"
+      type="number"
+      step="0.01"
+      placeholder="Price"
+    >
+
+    <input
+      id="adminPackageDuration"
+      class="admin-input"
+      type="number"
+      placeholder="Duration in Days"
+    >
+
+    <input
+      id="adminDailyReward"
+      class="admin-input"
+      type="number"
+      step="0.01"
+      placeholder="Daily Return (%)"
+    >
+
+    <button
+      class="package-btn"
+      onclick="createAdminPackage()"
+    >
+      Create Package
+    </button>
+
+  </div>
+
+  <div id="adminPackagesList"></div>
+
+</section>
+
+  <script>
+async function loadAdminPackages() {
+
+  const list = document.getElementById("adminPackagesList");
+
+  try {
+
+    const response = await fetch("/api/admin/packages", {
+      headers: {
+        "x-telegram-init-data":
+          window.Telegram?.WebApp?.initData || ""
+      }
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(
+        data.error || "Failed to load packages"
+      );
+    }
+
+    if (!data.packages.length) {
+
+      list.innerHTML = `
+        <div class="package-card">
+          <div class="package-desc">
+            No packages found.
+          </div>
+        </div>
+      `;
+
+      return;
+    }
+
+    list.innerHTML = data.packages.map(pkg => `
+      <div class="package-card">
+
+        <div class="package-name">
+          ${escapePackageText(pkg.name)}
+        </div>
+
+        <div class="package-desc">
+          Price: $${Number(pkg.price).toFixed(2)}
+          <br>
+          Duration: ${pkg.duration_days} Days
+          <br>
+          Daily Return:
+          ${Number(pkg.daily_reward).toFixed(2)}%
+        </div>
+
+        <button
+          class="package-btn"
+          onclick="editAdminPackage('${pkg.id}')"
+        >
+          Edit Package
+        </button>
+
+      </div>
+    `).join("");
+
+  } catch (error) {
+
+    console.error(
+      "Admin package load error:",
+      error
+    );
+
+    list.innerHTML = `
+      <div class="package-card">
+        <div class="package-desc">
+          ${escapePackageText(error.message)}
+        </div>
+      </div>
+    `;
+  }
+}
+
+
+async function createAdminPackage() {
+
+  const name =
+    document.getElementById(
+      "adminPackageName"
+    ).value.trim();
+
+  const price =
+    Number(
+      document.getElementById(
+        "adminPackagePrice"
+      ).value
+    );
+
+  const duration =
+    Number(
+      document.getElementById(
+        "adminPackageDuration"
+      ).value
+    );
+
+  const dailyReward =
+    Number(
+      document.getElementById(
+        "adminDailyReward"
+      ).value
+    );
+
+  if (!name || price <= 0 || duration <= 0) {
+
+    showToast(
+      "Please enter valid package details.",
+      "error"
+    );
+
+    return;
+  }
+
+  if (
+    dailyReward < 0 ||
+    dailyReward > 100
+  ) {
+
+    showToast(
+      "Daily Return must be between 0% and 100%.",
+      "error"
+    );
+
+    return;
+  }
+
+  try {
+
+    const response = await fetch(
+      "/api/admin/packages",
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+          "x-telegram-init-data":
+            window.Telegram?.WebApp?.initData || ""
+        },
+
+        body: JSON.stringify({
+
+          name: name,
+
+          description:
+            "ZYNVERO package",
+
+          price: price,
+
+          duration_days: duration,
+
+          daily_reward: dailyReward,
+
+          daily_reward_type:
+            "percentage",
+
+          bonus_eligible:
+            true,
+
+          active:
+            true
+
+        })
+      }
+    );
+
+    const data =
+      await response.json();
+
+    if (
+      !response.ok ||
+      !data.success
+    ) {
+
+      throw new Error(
+        data.error ||
+        "Package creation failed"
+      );
+
+    }
+
+    showToast(
+      "Package created successfully!",
+      "success"
+    );
+
+    document.getElementById(
+      "adminPackageName"
+    ).value = "";
+
+    document.getElementById(
+      "adminPackagePrice"
+    ).value = "";
+
+    document.getElementById(
+      "adminPackageDuration"
+    ).value = "";
+
+    document.getElementById(
+      "adminDailyReward"
+    ).value = "";
+
+    await loadAdminPackages();
+
+  } catch (error) {
+
+    console.error(
+      "Create package error:",
+      error
+    );
+
+    showToast(
+      error.message ||
+      "Package creation failed",
+      "error"
+    );
+  }
+}
+
+
+function editAdminPackage(packageId) {
+
+  showToast(
+    "Package editing UI will be added next.",
+    "success"
+  );
+
+}
+
+
+function escapePackageText(value) {
+
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+ 
+</script>
+
+<script>
+function openAdminPanel() {
+
+  const telegramId =
+    String(
+      window.Telegram?.WebApp?.initDataUnsafe?.user?.id || ""
+    );
+
+  if (telegramId !== "5624401046") {
+    showToast(
+      "Admin access required.",
+      "error"
+    );
+    return;
+  }
+
+  document
+    .querySelectorAll(".page")
+    .forEach(page => {
+      page.style.display = "none";
+    });
+
+  const adminPage =
+    document.getElementById("adminPage");
+
+  if (adminPage) {
+    adminPage.style.display = "block";
+  }
+
+  loadAdminPackages();
+}
+
+
+function showAdminButton() {
+
+  const telegramId =
+    String(
+      window.Telegram?.WebApp?.initDataUnsafe?.user?.id || ""
+    );
+
+  const button =
+    document.getElementById("adminPanelButton");
+
+  if (
+    button &&
+    telegramId === "5624401046"
+  ) {
+    button.style.display = "block";
+  }
+}
+
+
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+    showAdminButton();
+  }
+);
+</script>
   
 </body>
   </html>
