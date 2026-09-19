@@ -599,6 +599,216 @@ app.get(
 );
 
 // ===============================
+// ADMIN PACKAGE SETTINGS
+// ===============================
+
+app.get("/api/admin/packages", authMiddleware, async (req, res) => {
+  try {
+    const telegramId = String(req.telegramUser.id);
+
+    if (telegramId !== ADMIN_TELEGRAM_ID) {
+      return res.status(403).json({
+        success: false,
+        error: "Admin access required",
+      });
+    }
+
+    const result = await pool.query(`
+      SELECT
+        id,
+        name,
+        description,
+        price,
+        duration_days,
+        reward_amount,
+        reward_type,
+        daily_reward,
+        daily_reward_type,
+        bonus_eligible,
+        image_url,
+        active,
+        created_at,
+        updated_at
+      FROM packages
+      ORDER BY created_at DESC
+    `);
+
+    return res.json({
+      success: true,
+      packages: result.rows,
+    });
+
+  } catch (error) {
+    console.error("Admin packages error:", error);
+
+    return res.status(500).json({
+      success: false,
+      error: "Failed to load admin packages",
+    });
+  }
+});
+
+
+// Create package
+app.post("/api/admin/packages", authMiddleware, async (req, res) => {
+  try {
+    const telegramId = String(req.telegramUser.id);
+
+    if (telegramId !== ADMIN_TELEGRAM_ID) {
+      return res.status(403).json({
+        success: false,
+        error: "Admin access required",
+      });
+    }
+
+    const {
+      name,
+      description = "",
+      price,
+      duration_days,
+      daily_reward = 0,
+      daily_reward_type = "percentage",
+      image_url = "",
+      bonus_eligible = true,
+      active = true
+    } = req.body;
+
+    if (!name || price === undefined || !duration_days) {
+      return res.status(400).json({
+        success: false,
+        error: "Name, price and duration are required",
+      });
+    }
+
+    const result = await pool.query(
+      `
+      INSERT INTO packages (
+        name,
+        description,
+        price,
+        duration_days,
+        daily_reward,
+        daily_reward_type,
+        bonus_eligible,
+        image_url,
+        active
+      )
+      VALUES (
+        $1,$2,$3,$4,$5,$6,$7,$8,$9
+      )
+      RETURNING *
+      `,
+      [
+        String(name).trim(),
+        String(description),
+        Number(price),
+        Number(duration_days),
+        Number(daily_reward),
+        String(daily_reward_type),
+        Boolean(bonus_eligible),
+        String(image_url),
+        Boolean(active)
+      ]
+    );
+
+    return res.json({
+      success: true,
+      message: "Package created successfully",
+      package: result.rows[0],
+    });
+
+  } catch (error) {
+    console.error("Create package error:", error);
+
+    return res.status(500).json({
+      success: false,
+      error: "Failed to create package",
+    });
+  }
+});
+
+
+// Edit package
+app.put("/api/admin/packages/:packageId", authMiddleware, async (req, res) => {
+  try {
+    const telegramId = String(req.telegramUser.id);
+
+    if (telegramId !== ADMIN_TELEGRAM_ID) {
+      return res.status(403).json({
+        success: false,
+        error: "Admin access required",
+      });
+    }
+
+    const packageId = req.params.packageId;
+
+    const {
+      name,
+      description = "",
+      price,
+      duration_days,
+      daily_reward = 0,
+      daily_reward_type = "percentage",
+      image_url = "",
+      bonus_eligible = true,
+      active = true
+    } = req.body;
+
+    const result = await pool.query(
+      `
+      UPDATE packages
+      SET
+        name = $1,
+        description = $2,
+        price = $3,
+        duration_days = $4,
+        daily_reward = $5,
+        daily_reward_type = $6,
+        bonus_eligible = $7,
+        image_url = $8,
+        active = $9,
+        updated_at = NOW()
+      WHERE id = $10
+      RETURNING *
+      `,
+      [
+        String(name).trim(),
+        String(description),
+        Number(price),
+        Number(duration_days),
+        Number(daily_reward),
+        String(daily_reward_type),
+        Boolean(bonus_eligible),
+        String(image_url),
+        Boolean(active),
+        packageId
+      ]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "Package not found",
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: "Package updated successfully",
+      package: result.rows[0],
+    });
+
+  } catch (error) {
+    console.error("Update package error:", error);
+
+    return res.status(500).json({
+      success: false,
+      error: "Failed to update package",
+    });
+  }
+});
+
+// ===============================
 // PACKAGE API
 // ===============================
 
