@@ -1790,7 +1790,7 @@
         ).style.display =
           "none";
 
-        document.getElementById(
+        document.getElement<ById(
           "verifyMessage"
         ).textContent =
           "Please open ZYNVERO inside Telegram.";
@@ -2305,7 +2305,7 @@ function escapePackageText(value) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
- 
+ </script>
 <script>
 function isZynveroAdmin() {
 
@@ -2353,7 +2353,6 @@ function checkAdminAccess() {
 }
 
 setInterval(checkAdminAccess, 1000);
-</script>
 
 </script>
   
