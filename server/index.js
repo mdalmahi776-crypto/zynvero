@@ -599,6 +599,227 @@ app.get(
 );
 
 // ===============================
+// PACKAGE API
+// ===============================
+
+// Get active packages
+app.get("/api/packages", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        id,
+        name,
+        description,
+        price,
+        duration_days,
+        reward_amount,
+        reward_type,
+        image_url
+      FROM packages
+      WHERE active = true
+      ORDER BY price ASC, created_at ASC
+    `);
+
+    return res.json({
+      success: true,
+      packages: result.rows,
+    });
+  } catch (error) {
+    console.error("Packages error:", error);
+
+    return res.status(500).json({
+      success: false,
+      error: "Failed to load packages",
+    });
+  }
+});
+
+// Buy package using main balance or signup bonus
+app.post("/api/packages/:packageId/purchase", authMiddleware, async (req, res) => {
+  const client = await pool.connect();
+
+  try {
+    const telegramId = String(req.telegramUser.id);
+    const packageId = req.params.packageId;
+
+    await client.query("BEGIN");
+
+    // Find user
+    const userResult = await client.query(
+      `
+      SELECT
+        id,
+        telegram_id,
+        main_balance,
+        bonus_balance,
+        status
+      FROM users
+      WHERE telegram_id = $1
+      FOR UPDATE
+      `,
+      [telegramId]
+    );
+
+    if (userResult.rows.length === 0) {
+      await client.query("ROLLBACK");
+
+      return res.status(404).json({
+        success: false,
+        error: "User not found",
+      });
+    }
+
+    const user = userResult.rows[0];
+
+    if (user.status !== "active") {
+      await client.query("ROLLBACK");
+
+      return res.status(403).json({
+        success: false,
+        error: "Account is not active",
+      });
+    }
+
+    // Find package
+    const packageResult = await client.query(
+      `
+      SELECT
+        id,
+        name,
+        price,
+        duration_days,
+        reward_amount,
+        reward_type,
+        active
+      FROM packages
+      WHERE id = $1
+      LIMIT 1
+      `,
+      [packageId]
+    );
+
+    if (packageResult.rows.length === 0) {
+      await client.query("ROLLBACK");
+
+      return res.status(404).json({
+        success: false,
+        error: "Package not found",
+      });
+    }
+
+    const pkg = packageResult.rows[0];
+
+    if (!pkg.active) {
+      await client.query("ROLLBACK");
+
+      return res.status(400).json({
+        success: false,
+        error: "Package is not available",
+      });
+    }
+
+    const price = Number(pkg.price);
+    const mainBalance = Number(user.main_balance || 0);
+    const bonusBalance = Number(user.bonus_balance || 0);
+
+    let paymentSource = null;
+
+    // Signup bonus can ONLY be used for package purchase.
+    if (bonusBalance >= price) {
+      paymentSource = "signup_bonus";
+
+      await client.query(
+        `
+        UPDATE users
+        SET
+          bonus_balance = bonus_balance - $1,
+          updated_at = NOW()
+        WHERE id = $2
+        `,
+        [price, user.id]
+      );
+    } else if (mainBalance >= price) {
+      paymentSource = "main_balance";
+
+      await client.query(
+        `
+        UPDATE users
+        SET
+          main_balance = main_balance - $1,
+          updated_at = NOW()
+        WHERE id = $2
+        `,
+        [price, user.id]
+      );
+    } else {
+      await client.query("ROLLBACK");
+
+      return res.status(400).json({
+        success: false,
+        error: "Insufficient balance",
+      });
+    }
+
+    // Calculate package expiry
+    const expiresAt = new Date(
+      Date.now() + Number(pkg.duration_days) * 24 * 60 * 60 * 1000
+    );
+
+    // Activate package
+    const purchaseResult = await client.query(
+      `
+      INSERT INTO user_packages (
+        user_id,
+        package_id,
+        price_paid,
+        payment_source,
+        started_at,
+        expires_at,
+        status
+      )
+      VALUES (
+        $1,
+        $2,
+        $3,
+        $4,
+        NOW(),
+        $5,
+        'active'
+      )
+      RETURNING *
+      `,
+      [
+        user.id,
+        pkg.id,
+        price,
+        paymentSource,
+        expiresAt,
+      ]
+    );
+
+    await client.query("COMMIT");
+
+    return res.json({
+      success: true,
+      message: "Package activated successfully",
+      paymentSource,
+      package: purchaseResult.rows[0],
+    });
+  } catch (error) {
+    await client.query("ROLLBACK");
+
+    console.error("Package purchase error:", error);
+
+    return res.status(500).json({
+      success: false,
+      error: "Package purchase failed",
+    });
+  } finally {
+    client.release();
+  }
+});
+
+// ===============================
 // FRONTEND FALLBACK
 // ===============================
 
