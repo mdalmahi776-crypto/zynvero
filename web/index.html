@@ -1,0 +1,1913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  />
+
+  <title>ZYNVERO</title>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #080808;
+      --card: #111111;
+      --card2: #151515;
+      --gold: #d9ad4c;
+      --gold2: #f2cf75;
+      --text: #ffffff;
+      --muted: #8d8d8d;
+      --border: rgba(217, 173, 76, 0.18);
+      --danger: #ff5d5d;
+      --success: #50d890;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Arial,
+        sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    button {
+      font-family: inherit;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 520px;
+      min-height: 100vh;
+      margin: 0 auto;
+      padding-bottom: 90px;
+    }
+
+    /* =========================
+       LOADING
+    ========================= */
+
+    .loading-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+      background: var(--bg);
+    }
+
+    .logo-loader {
+      width: 72px;
+      height: 72px;
+      border: 2px solid rgba(217, 173, 76, 0.2);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+
+    .loader-text {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* =========================
+       HEADER
+    ========================= */
+
+    .header {
+      padding: 22px 18px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      font-size: 25px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: var(--gold2);
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      background: var(--success);
+      border-radius: 50%;
+      box-shadow: 0 0 12px rgba(80, 216, 144, 0.6);
+    }
+
+    /* =========================
+       CONTENT
+    ========================= */
+
+    .content {
+      padding: 10px 16px 20px;
+    }
+
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    /* =========================
+       JOIN GATE
+    ========================= */
+
+    .gate {
+      padding: 18px 0 0;
+    }
+
+    .gate-logo {
+      width: 76px;
+      height: 76px;
+      margin: 8px auto 18px;
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      background:
+        radial-gradient(
+          circle at center,
+          rgba(217, 173, 76, 0.22),
+          transparent 65%
+        ),
+        var(--card);
+      color: var(--gold2);
+      font-size: 30px;
+      font-weight: 900;
+      box-shadow:
+        0 0 35px rgba(217, 173, 76, 0.08);
+    }
+
+    .gate h1 {
+      text-align: center;
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .gate-subtitle {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      margin-bottom: 22px;
+    }
+
+    .community-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      padding: 14px;
+      margin-bottom: 11px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .community-icon {
+      width: 45px;
+      height: 45px;
+      flex-shrink: 0;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #191919;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--gold2);
+      font-weight: 800;
+    }
+
+    .community-info {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .community-name {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .community-user {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .join-btn {
+      border: 0;
+      background: var(--gold);
+      color: #111;
+      font-weight: 800;
+      font-size: 11px;
+      padding: 9px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .join-btn:active {
+      transform: scale(0.96);
+    }
+
+    .verify-btn {
+      width: 100%;
+      margin-top: 12px;
+      padding: 15px;
+      border: 0;
+      border-radius: 14px;
+      background: linear-gradient(
+        135deg,
+        var(--gold2),
+        var(--gold)
+      );
+      color: #0b0b0b;
+      font-size: 15px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .verify-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .verify-message {
+      min-height: 22px;
+      margin-top: 12px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .optional-box {
+      margin-top: 18px;
+      padding: 14px;
+      background: #0d0d0d;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 14px;
+    }
+
+    .optional-title {
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 5px;
+    }
+
+    .optional-text {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+
+    /* =========================
+       HOME
+    ========================= */
+
+    .welcome {
+      margin-top: 8px;
+      margin-bottom: 17px;
+    }
+
+    .welcome-small {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .welcome-name {
+      font-size: 25px;
+      font-weight: 900;
+    }
+
+    .balance-card {
+      position: relative;
+      overflow: hidden;
+      padding: 21px;
+      border-radius: 22px;
+      background:
+        radial-gradient(
+          circle at 90% 10%,
+          rgba(217, 173, 76, 0.18),
+          transparent 42%
+        ),
+        linear-gradient(145deg, #171717, #0e0e0e);
+      border: 1px solid var(--border);
+      margin-bottom: 14px;
+    }
+
+    .balance-label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 7px;
+    }
+
+    .balance-value {
+      font-size: 33px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+    }
+
+    .balance-currency {
+      font-size: 15px;
+      color: var(--gold2);
+      margin-left: 3px;
+    }
+
+    .bonus-line {
+      margin-top: 12px;
+      font-size: 11px;
+      color: var(--gold2);
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 11px;
+      margin-bottom: 15px;
+    }
+
+    .quick-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      padding: 17px;
+    }
+
+    .quick-label {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 7px;
+    }
+
+    .quick-value {
+      font-size: 19px;
+      font-weight: 800;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 900;
+      margin: 20px 0 11px;
+    }
+
+    .info-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      padding: 16px;
+    }
+
+    .info-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .info-row:last-child {
+      border-bottom: 0;
+    }
+
+    .info-label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .info-value {
+      font-size: 12px;
+      font-weight: 700;
+      text-align: right;
+    }
+
+    /* =========================
+       REFER
+    ========================= */
+
+    .ref-card {
+      background:
+        radial-gradient(
+          circle at 90% 0,
+          rgba(217,173,76,0.14),
+          transparent 40%
+        ),
+        var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
+    }
+
+    .ref-title {
+      font-size: 23px;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+
+    .ref-text {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+      margin-bottom: 18px;
+    }
+
+    .ref-box {
+      display: flex;
+      gap: 8px;
+    }
+
+    .ref-input {
+      flex: 1;
+      min-width: 0;
+      background: #090909;
+      color: white;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 11px;
+      padding: 12px;
+      font-size: 11px;
+      outline: none;
+    }
+
+    .copy-btn {
+      border: 0;
+      border-radius: 11px;
+      background: var(--gold);
+      color: #111;
+      font-weight: 900;
+      padding: 0 15px;
+      cursor: pointer;
+    }
+
+    .commission-card {
+      margin-top: 13px;
+      padding: 15px;
+      background: #0d0d0d;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .commission-label {
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+
+    .commission-value {
+      color: var(--gold2);
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    /* =========================
+       PACKAGES
+    ========================= */
+
+    .package-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 17px;
+      margin-bottom: 12px;
+    }
+
+    .package-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .package-name {
+      font-size: 17px;
+      font-weight: 900;
+    }
+
+    .package-price {
+      color: var(--gold2);
+      font-size: 17px;
+      font-weight: 900;
+    }
+
+    .package-desc {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+      margin-bottom: 13px;
+    }
+
+    .package-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 13px;
+    }
+
+    .package-stat {
+      background: #0c0c0c;
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    .package-stat-label {
+      color: var(--muted);
+      font-size: 10px;
+      margin-bottom: 4px;
+    }
+
+    .package-stat-value {
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .package-btn {
+      width: 100%;
+      border: 0;
+      padding: 12px;
+      border-radius: 11px;
+      background: var(--gold);
+      color: #111;
+      font-weight: 900;
+    }
+
+    .bonus-note {
+      color: var(--gold2);
+      font-size: 11px;
+      margin-top: 10px;
+    }
+
+    /* =========================
+       PROFILE
+    ========================= */
+
+    .profile-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      margin: 0 auto 12px;
+      background:
+        linear-gradient(
+          135deg,
+          var(--gold2),
+          var(--gold)
+        );
+      color: #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 27px;
+      font-weight: 900;
+    }
+
+    .profile-name {
+      font-size: 20px;
+      font-weight: 900;
+      margin-bottom: 3px;
+    }
+
+    .profile-username {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .profile-list {
+      margin-top: 17px;
+      text-align: left;
+    }
+
+    /* =========================
+       BOTTOM NAV
+    ========================= */
+
+    .bottom-nav {
+      position: fixed;
+      left: 50%;
+      bottom: 0;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 520px;
+      height: 72px;
+      background: rgba(10,10,10,0.97);
+      backdrop-filter: blur(14px);
+      border-top: 1px solid rgba(255,255,255,0.07);
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      z-index: 100;
+    }
+
+    .nav-btn {
+      border: 0;
+      background: transparent;
+      color: #777;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      font-size: 10px;
+      cursor: pointer;
+    }
+
+    .nav-btn.active {
+      color: var(--gold2);
+    }
+
+    .nav-icon {
+      font-size: 19px;
+      line-height: 1;
+    }
+
+    .z-nav {
+      width: 47px;
+      height: 47px;
+      margin-top: -17px;
+      border-radius: 50%;
+      border: 2px solid var(--gold);
+      background: #0b0b0b;
+      color: var(--gold2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 1000;
+      font-size: 18px;
+      box-shadow:
+        0 0 22px rgba(217,173,76,0.18);
+    }
+
+    /* =========================
+       TOAST
+    ========================= */
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 88px;
+      transform: translateX(-50%) translateY(20px);
+      width: calc(100% - 34px);
+      max-width: 480px;
+      padding: 13px 15px;
+      background: #181818;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      font-size: 12px;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: 0.25s ease;
+      z-index: 200;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .toast.error {
+      border-color: rgba(255,93,93,0.35);
+    }
+
+    .toast.success {
+      border-color: rgba(80,216,144,0.35);
+    }
+
+    /* =========================
+       RESPONSIVE
+    ========================= */
+
+    @media (min-width: 521px) {
+      body {
+        background: #030303;
+      }
+
+      .app {
+        background: var(--bg);
+        box-shadow:
+          0 0 60px rgba(0,0,0,0.4);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- =========================
+       LOADING
+  ========================= -->
+
+  <div id="loadingScreen" class="loading-screen">
+    <div class="logo-loader"></div>
+    <div class="loader-text">Loading ZYNVERO...</div>
+  </div>
+
+  <!-- =========================
+       APP
+  ========================= -->
+
+  <div id="app" class="app" style="display:none;">
+
+    <header class="header">
+      <div class="brand">ZYNVERO</div>
+      <div class="status-dot"></div>
+    </header>
+
+    <main class="content">
+
+      <!-- =====================
+           JOIN GATE
+      ====================== -->
+
+      <section id="gatePage" class="gate">
+
+        <div class="gate-logo">Z</div>
+
+        <h1>Join ZYNVERO</h1>
+
+        <p class="gate-subtitle">
+          Join all required ZYNVERO communities
+          to unlock your dashboard.
+        </p>
+
+        <div id="communityList"></div>
+
+        <button
+          id="verifyBtn"
+          class="verify-btn"
+          onclick="verifyMembership()"
+        >
+          Verify Membership
+        </button>
+
+        <div
+          id="verifyMessage"
+          class="verify-message"
+        ></div>
+
+        <div class="optional-box">
+
+          <div class="optional-title">
+            Optional Community
+          </div>
+
+          <div class="optional-text">
+            You can also join ZYNVERO Crypto.
+            This community is optional and is not
+            required to unlock the dashboard.
+          </div>
+
+          <button
+            class="join-btn"
+            onclick="openTelegramLink('https://t.me/zynverocrypto')"
+          >
+            Join
+          </button>
+
+        </div>
+
+      </section>
+
+      <!-- =====================
+           HOME
+      ====================== -->
+
+      <section id="homePage" class="page">
+
+        <div class="welcome">
+          <div class="welcome-small">
+            Welcome back
+          </div>
+
+          <div
+            id="welcomeName"
+            class="welcome-name"
+          >
+            ZYNVERO User
+          </div>
+        </div>
+
+        <div class="balance-card">
+
+          <div class="balance-label">
+            Main Balance
+          </div>
+
+          <div class="balance-value">
+            $<span id="mainBalance">0.00</span>
+          </div>
+
+          <div class="bonus-line">
+            Package Bonus:
+            $<span id="bonusBalance">0.00</span>
+          </div>
+
+        </div>
+
+        <div class="quick-grid">
+
+          <div class="quick-card">
+            <div class="quick-label">
+              Active Packages
+            </div>
+
+            <div
+              id="activePackages"
+              class="quick-value"
+            >
+              0
+            </div>
+          </div>
+
+          <div class="quick-card">
+            <div class="quick-label">
+              Referral Earnings
+            </div>
+
+            <div class="quick-value">
+              $0.00
+            </div>
+          </div>
+
+        </div>
+
+        <div class="section-title">
+          Account
+        </div>
+
+        <div class="info-card">
+
+          <div class="info-row">
+            <div class="info-label">
+              Status
+            </div>
+
+            <div class="info-value">
+              Active
+            </div>
+          </div>
+
+          <div class="info-row">
+            <div class="info-label">
+              Signup Bonus
+            </div>
+
+            <div class="info-value">
+              $3.00
+            </div>
+          </div>
+
+          <div class="info-row">
+            <div class="info-label">
+              Bonus Usage
+            </div>
+
+            <div class="info-value">
+              Package Only
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- =====================
+           REFER
+      ====================== -->
+
+      <section id="referPage" class="page">
+
+        <div class="section-title">
+          Refer & Earn
+        </div>
+
+        <div class="ref-card">
+
+          <div class="ref-title">
+            Invite Friends
+          </div>
+
+          <div class="ref-text">
+            Share your ZYNVERO referral link.
+            Your referral commission is managed
+            by the ZYNVERO system and can be
+            configured by the administrator.
+          </div>
+
+          <div class="ref-box">
+
+            <input
+              id="referralInput"
+              class="ref-input"
+              readonly
+              value="Loading..."
+            />
+
+            <button
+              class="copy-btn"
+              onclick="copyReferral()"
+            >
+              Copy
+            </button>
+
+          </div>
+
+          <div class="commission-card">
+
+            <div class="commission-label">
+              Your Referral Code
+            </div>
+
+            <div
+              id="referralCode"
+              class="commission-value"
+            >
+              -
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- =====================
+           PACKAGES
+      ====================== -->
+
+      <section id="packagesPage" class="page">
+
+        <div class="section-title">
+          Packages
+        </div>
+
+        <div class="package-card">
+
+          <div class="package-top">
+            <div class="package-name">
+              ZYNVERO Starter
+            </div>
+
+            <div class="package-price">
+              $3
+            </div>
+          </div>
+
+          <div class="package-desc">
+            Your signup bonus can be used to
+            activate an eligible package.
+            The signup bonus cannot be withdrawn
+            or transferred as cash.
+          </div>
+
+          <div class="package-stats">
+
+            <div class="package-stat">
+              <div class="package-stat-label">
+                Payment
+              </div>
+
+              <div class="package-stat-value">
+                Bonus Balance
+              </div>
+            </div>
+
+            <div class="package-stat">
+              <div class="package-stat-label">
+                Bonus
+              </div>
+
+              <div class="package-stat-value">
+                $3.00
+              </div>
+            </div>
+
+          </div>
+
+          <button
+            class="package-btn"
+            onclick="showToast('Package activation will be available after the package system is enabled.', 'success')"
+          >
+            View Package
+          </button>
+
+          <div class="bonus-note">
+            $3 signup bonus is package-only.
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- =====================
+           PROFILE
+      ====================== -->
+
+      <section id="profilePage" class="page">
+
+        <div class="section-title">
+          Profile
+        </div>
+
+        <div class="profile-card">
+
+          <div
+            id="avatar"
+            class="avatar"
+          >
+            Z
+          </div>
+
+          <div
+            id="profileName"
+            class="profile-name"
+          >
+            ZYNVERO User
+          </div>
+
+          <div
+            id="profileUsername"
+            class="profile-username"
+          >
+            @username
+          </div>
+
+          <div class="profile-list">
+
+            <div class="info-row">
+              <div class="info-label">
+                Telegram ID
+              </div>
+
+              <div
+                id="profileTelegramId"
+                class="info-value"
+              >
+                -
+              </div>
+            </div>
+
+            <div class="info-row">
+              <div class="info-label">
+                Referral Code
+              </div>
+
+              <div
+                id="profileReferral"
+                class="info-value"
+              >
+                -
+              </div>
+            </div>
+
+            <div class="info-row">
+              <div class="info-label">
+                Account Status
+              </div>
+
+              <div
+                id="profileStatus"
+                class="info-value"
+              >
+                Active
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="section-title">
+          Support
+        </div>
+
+        <div class="info-card">
+
+          <div class="info-row">
+
+            <div class="info-label">
+              ZYNVERO HelpDesk
+            </div>
+
+            <button
+              class="join-btn"
+              onclick="openTelegramLink('https://t.me/zynverohelpdesk')"
+            >
+              Contact
+            </button>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- =========================
+         BOTTOM NAV
+    ========================= -->
+
+    <nav
+      id="bottomNav"
+      class="bottom-nav"
+      style="display:none;"
+    >
+
+      <button
+        class="nav-btn active"
+        data-page="homePage"
+        onclick="showPage('homePage', this)"
+      >
+        <span class="nav-icon">⌂</span>
+        <span>Home</span>
+      </button>
+
+      <button
+        class="nav-btn"
+        data-page="referPage"
+        onclick="showPage('referPage', this)"
+      >
+        <span class="nav-icon">↗</span>
+        <span>Refer</span>
+      </button>
+
+      <button
+        class="nav-btn"
+        data-page="packagesPage"
+        onclick="showPage('packagesPage', this)"
+      >
+        <span class="z-nav">Z</span>
+      </button>
+
+      <button
+        class="nav-btn"
+        data-page="profilePage"
+        onclick="showPage('profilePage', this)"
+      >
+        <span class="nav-icon">◎</span>
+        <span>Profile</span>
+      </button>
+
+      <button
+        class="nav-btn"
+        onclick="openTelegramLink('https://t.me/zynverohelpdesk')"
+      >
+        <span class="nav-icon">?</span>
+        <span>Help</span>
+      </button>
+
+    </nav>
+
+  </div>
+
+  <!-- =========================
+       TOAST
+  ========================= -->
+
+  <div
+    id="toast"
+    class="toast"
+  ></div>
+
+
+  <script>
+    // ==========================================
+    // TELEGRAM
+    // ==========================================
+
+    const tg = window.Telegram?.WebApp;
+
+    if (tg) {
+      tg.ready();
+      tg.expand();
+
+      try {
+        tg.setHeaderColor("#080808");
+        tg.setBackgroundColor("#080808");
+      } catch (e) {}
+    }
+
+    // ==========================================
+    // STATE
+    // ==========================================
+
+    let config = null;
+    let currentUser = null;
+    let verified = false;
+
+    // ==========================================
+    // API HELPER
+    // ==========================================
+
+    async function apiRequest(
+      url,
+      options = {}
+    ) {
+      const initData =
+        tg?.initData || "";
+
+      const headers = {
+        "Content-Type": "application/json",
+        ...(options.headers || {})
+      };
+
+      if (initData) {
+        headers["X-Telegram-Init-Data"] =
+          initData;
+      }
+
+      const response = await fetch(
+        url,
+        {
+          ...options,
+          headers
+        }
+      );
+
+      let data = {};
+
+      try {
+        data = await response.json();
+      } catch (e) {
+        data = {};
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+          data.message ||
+          `Request failed (${response.status})`
+        );
+      }
+
+      return data;
+    }
+
+    // ==========================================
+    // TELEGRAM LINK
+    // ==========================================
+
+    function openTelegramLink(url) {
+      try {
+        if (tg?.openTelegramLink) {
+          tg.openTelegramLink(url);
+          return;
+        }
+      } catch (e) {}
+
+      window.open(
+        url,
+        "_blank"
+      );
+    }
+
+    // ==========================================
+    // TOAST
+    // ==========================================
+
+    let toastTimer;
+
+    function showToast(
+      message,
+      type = ""
+    ) {
+      const toast =
+        document.getElementById("toast");
+
+      toast.textContent = message;
+
+      toast.className =
+        `toast show ${type}`;
+
+      clearTimeout(toastTimer);
+
+      toastTimer = setTimeout(() => {
+        toast.className = "toast";
+      }, 3200);
+    }
+
+    // ==========================================
+    // LOAD CONFIG
+    // ==========================================
+
+    async function loadConfig() {
+      try {
+        config =
+          await apiRequest(
+            "/api/config"
+          );
+
+        renderCommunities();
+
+      } catch (error) {
+        console.error(
+          "Config error:",
+          error
+        );
+
+        showToast(
+          error.message ||
+          "Could not load configuration.",
+          "error"
+        );
+      }
+    }
+
+    // ==========================================
+    // RENDER COMMUNITIES
+    // ==========================================
+
+    function renderCommunities() {
+      const list =
+        document.getElementById(
+          "communityList"
+        );
+
+      list.innerHTML = "";
+
+      if (
+        !config ||
+        !Array.isArray(
+          config.requiredChats
+        )
+      ) {
+        return;
+      }
+
+      config.requiredChats.forEach(
+        (chat, index) => {
+
+          const card =
+            document.createElement(
+              "div"
+            );
+
+          card.className =
+            "community-card";
+
+          card.innerHTML = `
+            <div class="community-icon">
+              ${index + 1}
+            </div>
+
+            <div class="community-info">
+              <div class="community-name">
+                ${escapeHtml(chat.name)}
+              </div>
+
+              <div class="community-user">
+                ${escapeHtml(chat.username)}
+              </div>
+            </div>
+
+            <button
+              class="join-btn"
+              onclick="openTelegramLink('${chat.url}')"
+            >
+              Join
+            </button>
+          `;
+
+          list.appendChild(card);
+        }
+      );
+    }
+
+    // ==========================================
+    // VERIFY MEMBERSHIP
+    // ==========================================
+
+    async function verifyMembership() {
+      const btn =
+        document.getElementById(
+          "verifyBtn"
+        );
+
+      const message =
+        document.getElementById(
+          "verifyMessage"
+        );
+
+      if (!tg?.initData) {
+        message.textContent =
+          "Please open ZYNVERO from Telegram.";
+
+        showToast(
+          "Telegram authentication data is missing.",
+          "error"
+        );
+
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent =
+        "Checking...";
+
+      message.textContent =
+        "Checking your memberships...";
+
+      try {
+        const result =
+          await apiRequest(
+            "/api/verify-membership",
+            {
+              method: "POST"
+            }
+          );
+
+        if (
+          result.success &&
+          result.allJoined
+        ) {
+          verified = true;
+
+          message.textContent =
+            "All required communities verified.";
+
+          message.style.color =
+            "var(--success)";
+
+          showToast(
+            "Membership verified successfully.",
+            "success"
+          );
+
+          await authenticateUser();
+
+          return;
+        }
+
+        const missing =
+          (result.communities || [])
+            .filter(
+              (item) =>
+                !item.joined
+            );
+
+        message.textContent =
+          missing.length
+            ? `You still need to join ${missing.length} required community${missing.length > 1 ? "ies" : "y"}.`
+            : "Membership verification failed.";
+
+        message.style.color =
+          "var(--danger)";
+
+        showToast(
+          "Please join all required communities first.",
+          "error"
+        );
+
+      } catch (error) {
+        console.error(
+          "Verification error:",
+          error
+        );
+
+        message.textContent =
+          error.message ||
+          "Verification failed.";
+
+        message.style.color =
+          "var(--danger)";
+
+        showToast(
+          error.message ||
+          "Verification failed.",
+          "error"
+        );
+
+      } finally {
+        btn.disabled = false;
+        btn.textContent =
+          "Verify Membership";
+      }
+    }
+
+    // ==========================================
+    // AUTHENTICATE
+    // ==========================================
+
+    async function authenticateUser() {
+      try {
+        const startParam =
+          tg?.initDataUnsafe?.start_param ||
+          "";
+
+        let referralCode =
+          null;
+
+        if (
+          startParam &&
+          startParam.startsWith("ref_")
+        ) {
+          referralCode =
+            startParam.substring(4);
+        }
+
+        const result =
+          await apiRequest(
+            "/api/auth",
+            {
+              method: "POST",
+              body: JSON.stringify({
+                referralCode
+              })
+            }
+          );
+
+        if (!result.success) {
+          throw new Error(
+            result.error ||
+            "Authentication failed."
+          );
+        }
+
+        currentUser =
+          result.user;
+
+        renderDashboard();
+
+        await loadProfile();
+
+      } catch (error) {
+        console.error(
+          "Auth error:",
+          error
+        );
+
+        showToast(
+          error.message ||
+          "Authentication failed.",
+          "error"
+        );
+      }
+    }
+
+    // ==========================================
+    // LOAD PROFILE
+    // ==========================================
+
+    async function loadProfile() {
+      try {
+        const result =
+          await apiRequest(
+            "/api/profile"
+          );
+
+        if (result.success) {
+          currentUser =
+            result.user;
+
+          renderDashboard();
+        }
+
+      } catch (error) {
+        console.error(
+          "Profile error:",
+          error
+        );
+      }
+    }
+
+    // ==========================================
+    // RENDER DASHBOARD
+    // ==========================================
+
+    function renderDashboard() {
+      if (!currentUser) {
+        return;
+      }
+
+      const firstName =
+        currentUser.first_name ||
+        "ZYNVERO User";
+
+      document.getElementById(
+        "welcomeName"
+      ).textContent =
+        firstName;
+
+      document.getElementById(
+        "mainBalance"
+      ).textContent =
+        Number(
+          currentUser.main_balance || 0
+        ).toFixed(2);
+
+      document.getElementById(
+        "bonusBalance"
+      ).textContent =
+        Number(
+          currentUser.bonus_balance || 0
+        ).toFixed(2);
+
+      const fullName =
+        [
+          currentUser.first_name,
+          currentUser.last_name
+        ]
+          .filter(Boolean)
+          .join(" ") ||
+        "ZYNVERO User";
+
+      document.getElementById(
+        "profileName"
+      ).textContent =
+        fullName;
+
+      document.getElementById(
+        "profileUsername"
+      ).textContent =
+        currentUser.username
+          ? `@${currentUser.username}`
+          : "Telegram User";
+
+      document.getElementById(
+        "profileTelegramId"
+      ).textContent =
+        currentUser.telegram_id ||
+        "-";
+
+      document.getElementById(
+        "profileReferral"
+      ).textContent =
+        currentUser.referral_code ||
+        "-";
+
+      document.getElementById(
+        "profileStatus"
+      ).textContent =
+        currentUser.status ||
+        "Active";
+
+      const initial =
+        (
+          currentUser.first_name ||
+          currentUser.username ||
+          "Z"
+        )
+          .charAt(0)
+          .toUpperCase();
+
+      document.getElementById(
+        "avatar"
+      ).textContent =
+        initial;
+
+      const referralCode =
+        currentUser.referral_code ||
+        "";
+
+      const botUsername =
+        "ZynveroCryptobot";
+
+      const referralLink =
+        referralCode
+          ? `https://t.me/${botUsername}?start=ref_${referralCode}`
+          : `https://t.me/${botUsername}`;
+
+      document.getElementById(
+        "referralInput"
+      ).value =
+        referralLink;
+
+      document.getElementById(
+        "referralCode"
+      ).textContent =
+        referralCode || "-";
+
+      document.getElementById(
+        "loadingScreen"
+      ).style.display =
+        "none";
+
+      document.getElementById(
+        "app"
+      ).style.display =
+        "block";
+
+      document.getElementById(
+        "gatePage"
+      ).style.display =
+        "none";
+
+      document.getElementById(
+        "bottomNav"
+      ).style.display =
+        "grid";
+
+      document
+        .querySelectorAll(".page")
+        .forEach((page) => {
+          page.classList.remove(
+            "active"
+          );
+        });
+
+      document
+        .getElementById("homePage")
+        .classList.add("active");
+    }
+
+    // ==========================================
+    // SHOW GATE
+    // ==========================================
+
+    function showGate() {
+      document.getElementById(
+        "loadingScreen"
+      ).style.display =
+        "none";
+
+      document.getElementById(
+        "app"
+      ).style.display =
+        "block";
+
+      document.getElementById(
+        "gatePage"
+      ).style.display =
+        "block";
+
+      document.getElementById(
+        "bottomNav"
+      ).style.display =
+        "none";
+    }
+
+    // ==========================================
+    // NAVIGATION
+    // ==========================================
+
+    function showPage(
+      pageId,
+      button
+    ) {
+      if (!verified) {
+        return;
+      }
+
+      document
+        .querySelectorAll(".page")
+        .forEach((page) => {
+          page.classList.remove(
+            "active"
+          );
+        });
+
+      const page =
+        document.getElementById(
+          pageId
+        );
+
+      if (page) {
+        page.classList.add(
+          "active"
+        );
+      }
+
+      document
+        .querySelectorAll(".nav-btn")
+        .forEach((btn) => {
+          btn.classList.remove(
+            "active"
+          );
+        });
+
+      if (button) {
+        button.classList.add(
+          "active"
+        );
+      }
+    }
+
+    // ==========================================
+    // COPY REFERRAL
+    // ==========================================
+
+    async function copyReferral() {
+      const input =
+        document.getElementById(
+          "referralInput"
+        );
+
+      const value =
+        input.value;
+
+      try {
+        await navigator.clipboard.writeText(
+          value
+        );
+
+        showToast(
+          "Referral link copied.",
+          "success"
+        );
+
+      } catch (error) {
+        input.select();
+
+        document.execCommand(
+          "copy"
+        );
+
+        showToast(
+          "Referral link copied.",
+          "success"
+        );
+      }
+    }
+
+    // ==========================================
+    // ESCAPE HTML
+    // ==========================================
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    // ==========================================
+    // INITIALIZE
+    // ==========================================
+
+    async function initialize() {
+
+      if (!tg?.initData) {
+
+        document.getElementById(
+          "loadingScreen"
+        ).style.display =
+          "none";
+
+        document.getElementById(
+          "app"
+        ).style.display =
+          "block";
+
+        document.getElementById(
+          "gatePage"
+        ).style.display =
+          "block";
+
+        document.getElementById(
+          "bottomNav"
+        ).style.display =
+          "none";
+
+        document.getElementById(
+          "verifyMessage"
+        ).textContent =
+          "Please open ZYNVERO inside Telegram.";
+
+        await loadConfig();
+
+        return;
+      }
+
+      await loadConfig();
+
+      showGate();
+    }
+
+    initialize();
+  </script>
+
+</body>
+  </html>
