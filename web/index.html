@@ -1987,10 +1987,10 @@ document.addEventListener(
   }
 );
 </script>
-
 <!-- =========================
      ADMIN PANEL
 ========================= -->
+
 <button
   id="adminPanelButton"
   class="package-btn"
@@ -1999,7 +1999,7 @@ document.addEventListener(
 >
   Admin Panel
 </button>
-  
+
 <section
   id="adminPage"
   class="page"
@@ -2063,25 +2063,33 @@ document.addEventListener(
 
 </section>
 
-  <script>
+<script>
+
 async function loadAdminPackages() {
 
-  const list = document.getElementById("adminPackagesList");
+  const list =
+    document.getElementById("adminPackagesList");
 
   try {
 
-    const response = await fetch("/api/admin/packages", {
-      headers: {
-        "x-telegram-init-data":
-          window.Telegram?.WebApp?.initData || ""
-      }
-    });
+    const response =
+      await fetch("/api/admin/packages", {
+        headers: {
+          "x-telegram-init-data":
+            window.Telegram?.WebApp?.initData || ""
+        }
+      });
 
-    const data = await response.json();
+    const data =
+      await response.json();
 
-    if (!response.ok || !data.success) {
+    if (
+      !response.ok ||
+      !data.success
+    ) {
       throw new Error(
-        data.error || "Failed to load packages"
+        data.error ||
+        "Failed to load packages"
       );
     }
 
@@ -2098,7 +2106,9 @@ async function loadAdminPackages() {
       return;
     }
 
-    list.innerHTML = data.packages.map(pkg => `
+    list.innerHTML =
+      data.packages.map(pkg => `
+
       <div class="package-card">
 
         <div class="package-name">
@@ -2106,12 +2116,20 @@ async function loadAdminPackages() {
         </div>
 
         <div class="package-desc">
-          Price: $${Number(pkg.price).toFixed(2)}
+
+          Price:
+          $${Number(pkg.price).toFixed(2)}
+
           <br>
-          Duration: ${pkg.duration_days} Days
+
+          Duration:
+          ${pkg.duration_days} Days
+
           <br>
+
           Daily Return:
           ${Number(pkg.daily_reward).toFixed(2)}%
+
         </div>
 
         <button
@@ -2122,6 +2140,7 @@ async function loadAdminPackages() {
         </button>
 
       </div>
+
     `).join("");
 
   } catch (error) {
@@ -2133,9 +2152,13 @@ async function loadAdminPackages() {
 
     list.innerHTML = `
       <div class="package-card">
+
         <div class="package-desc">
-          ${escapePackageText(error.message)}
+          ${escapePackageText(
+            error.message
+          )}
         </div>
+
       </div>
     `;
   }
@@ -2170,7 +2193,12 @@ async function createAdminPackage() {
       ).value
     );
 
-  if (!name || price <= 0 || duration <= 0) {
+
+  if (
+    !name ||
+    price <= 0 ||
+    duration <= 0
+  ) {
 
     showToast(
       "Please enter valid package details.",
@@ -2179,6 +2207,7 @@ async function createAdminPackage() {
 
     return;
   }
+
 
   if (
     dailyReward < 0 ||
@@ -2193,47 +2222,57 @@ async function createAdminPackage() {
     return;
   }
 
+
   try {
 
-    const response = await fetch(
-      "/api/admin/packages",
-      {
-        method: "POST",
+    const response =
+      await fetch(
+        "/api/admin/packages",
+        {
+          method: "POST",
 
-        headers: {
-          "Content-Type": "application/json",
-          "x-telegram-init-data":
-            window.Telegram?.WebApp?.initData || ""
-        },
+          headers: {
 
-        body: JSON.stringify({
+            "Content-Type":
+              "application/json",
 
-          name: name,
+            "x-telegram-init-data":
+              window.Telegram?.WebApp?.initData || ""
 
-          description:
-            "ZYNVERO package",
+          },
 
-          price: price,
+          body: JSON.stringify({
 
-          duration_days: duration,
+            name: name,
 
-          daily_reward: dailyReward,
+            description:
+              "ZYNVERO package",
 
-          daily_reward_type:
-            "percentage",
+            price: price,
 
-          bonus_eligible:
-            true,
+            duration_days:
+              duration,
 
-          active:
-            true
+            daily_reward:
+              dailyReward,
 
-        })
-      }
-    );
+            daily_reward_type:
+              "percentage",
+
+            bonus_eligible:
+              true,
+
+            active:
+              true
+
+          })
+        }
+      );
+
 
     const data =
       await response.json();
+
 
     if (
       !response.ok ||
@@ -2247,26 +2286,32 @@ async function createAdminPackage() {
 
     }
 
+
     showToast(
       "Package created successfully!",
       "success"
     );
 
+
     document.getElementById(
       "adminPackageName"
     ).value = "";
+
 
     document.getElementById(
       "adminPackagePrice"
     ).value = "";
 
+
     document.getElementById(
       "adminPackageDuration"
     ).value = "";
 
+
     document.getElementById(
       "adminDailyReward"
     ).value = "";
+
 
     await loadAdminPackages();
 
@@ -2277,82 +2322,137 @@ async function createAdminPackage() {
       error
     );
 
+
     showToast(
       error.message ||
       "Package creation failed",
       "error"
     );
+
   }
 }
 
 
-function editAdminPackage(packageId) {
+function editAdminPackage(
+  packageId
+) {
 
   showToast(
     "Package editing UI will be added next.",
     "success"
   );
+
 }
-  
+
+
 function escapePackageText(value) {
 
   return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
+    );
 }
+
 </script>
 
-<script>
+ <script>
+
 function isZynveroAdmin() {
 
   const telegramId =
     String(
-      window.Telegram?.WebApp?.initDataUnsafe?.user?.id || ""
+      window.Telegram?.WebApp
+        ?.initDataUnsafe?.user?.id || ""
     );
 
   return telegramId === "5624401046";
 }
 
+
 function openAdminPanel() {
 
   if (!isZynveroAdmin()) {
-    showToast("Admin access required.", "error");
+
+    showToast(
+      "Admin access required.",
+      "error"
+    );
+
     return;
   }
 
-  document.querySelectorAll(".page").forEach(page => {
-    page.style.display = "none";
-  });
+
+  document
+    .querySelectorAll(".page")
+    .forEach(page => {
+      page.style.display = "none";
+    });
+
 
   const adminPage =
-    document.getElementById("adminPage");
+    document.getElementById(
+      "adminPage"
+    );
+
 
   if (adminPage) {
     adminPage.style.display = "block";
   }
 
+
   loadAdminPackages();
 }
+
 
 function checkAdminAccess() {
 
   const button =
-    document.getElementById("adminPanelButton");
+    document.getElementById(
+      "adminPanelButton"
+    );
+
 
   if (!button) return;
 
+
   if (isZynveroAdmin()) {
-    button.style.display = "block";
+
+    button.style.display =
+      "block";
+
   } else {
-    button.style.display = "none";
+
+    button.style.display =
+      "none";
+
   }
 }
 
-setInterval(checkAdminAccess, 1000);
+
+setInterval(
+  checkAdminAccess,
+  1000
+);
+
 </script>
 
-</body>
+ 
+ </body>
 </html>
