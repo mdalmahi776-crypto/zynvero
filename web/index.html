@@ -484,82 +484,27 @@
       font-weight: 900;
     }
 
-    /* =========================
-       PACKAGES
-    ========================= */
+    <!-- =====================
+     PACKAGES
+====================== -->
 
-    .package-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 17px;
-      margin-bottom: 12px;
-    }
+<section id="packagesPage" class="page">
 
-    .package-top {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
+  <div class="section-title">
+    Packages
+  </div>
 
-    .package-name {
-      font-size: 17px;
-      font-weight: 900;
-    }
+  <div id="packagesList">
 
-    .package-price {
-      color: var(--gold2);
-      font-size: 17px;
-      font-weight: 900;
-    }
+    <div class="package-card">
+      <div class="package-desc">
+        Loading packages...
+      </div>
+    </div>
 
-    .package-desc {
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.5;
-      margin-bottom: 13px;
-    }
+  </div>
 
-    .package-stats {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 13px;
-    }
-
-    .package-stat {
-      background: #0c0c0c;
-      border-radius: 10px;
-      padding: 10px;
-    }
-
-    .package-stat-label {
-      color: var(--muted);
-      font-size: 10px;
-      margin-bottom: 4px;
-    }
-
-    .package-stat-value {
-      font-size: 12px;
-      font-weight: 800;
-    }
-
-    .package-btn {
-      width: 100%;
-      border: 0;
-      padding: 12px;
-      border-radius: 11px;
-      background: var(--gold);
-      color: #111;
-      font-weight: 900;
-    }
-
-    .bonus-note {
-      color: var(--gold2);
-      font-size: 11px;
-      margin-top: 10px;
-    }
+</section>
 
     /* =========================
        PROFILE
@@ -1909,5 +1854,185 @@
     initialize();
   </script>
 
+<script>
+async function loadPackages() {
+  const list = document.getElementById("packagesList");
+
+  try {
+    const response = await fetch("/api/packages");
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(data.error || "Failed to load packages");
+    }
+
+    if (!data.packages || data.packages.length === 0) {
+      list.innerHTML = `
+        <div class="package-card">
+          <div class="package-desc">
+            No packages available right now.
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    list.innerHTML = data.packages.map(pkg => `
+      <div class="package-card">
+
+        <div class="package-top">
+          <div class="package-name">
+            ${escapePackageText(pkg.name)}
+          </div>
+
+          <div class="package-price">
+            $${Number(pkg.price).toFixed(2)}
+          </div>
+        </div>
+
+        <div class="package-desc">
+          ${escapePackageText(pkg.description || "")}
+        </div>
+
+        <div class="package-stats">
+
+          <div class="package-stat">
+            <div class="package-stat-label">
+              Duration
+            </div>
+
+            <div class="package-stat-value">
+              ${pkg.duration_days} Days
+            </div>
+          </div>
+
+          <div class="package-stat">
+            <div class="package-stat-label">
+              Price
+            </div>
+
+            <div class="package-stat-value">
+              $${Number(pkg.price).toFixed(2)}
+            </div>
+          </div>
+
+        </div>
+
+        <button
+          class="package-btn"
+          onclick="buyPackage('${pkg.id}')"
+        >
+          Buy Package
+        </button>
+
+        <div class="bonus-note">
+          Signup bonus can be used for eligible packages.
+        </div>
+
+      </div>
+    `).join("");
+
+  } catch (error) {
+    console.error("Load packages error:", error);
+
+    list.innerHTML = `
+      <div class="package-card">
+        <div class="package-desc">
+          Failed to load packages.
+        </div>
+      </div>
+    `;
+  }
+}
+
+
+async function buyPackage(packageId) {
+
+  const telegram =
+    window.Telegram &&
+    window.Telegram.WebApp;
+
+  const initData =
+    telegram ? telegram.initData : "";
+
+  if (!initData) {
+    showToast(
+      "Please open ZYNVERO inside Telegram.",
+      "error"
+    );
+    return;
+  }
+
+  try {
+
+    const response = await fetch(
+      `/api/packages/${packageId}/purchase`,
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+          "x-telegram-init-data": initData
+        },
+
+        body: JSON.stringify({})
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(
+        data.error || "Package purchase failed"
+      );
+    }
+
+    showToast(
+      "Package activated successfully!",
+      "success"
+    );
+
+    // Refresh dashboard/package data if available
+    if (typeof loadProfile === "function") {
+      await loadProfile();
+    }
+
+    await loadPackages();
+
+  } catch (error) {
+
+    console.error(
+      "Package purchase error:",
+      error
+    );
+
+    showToast(
+      error.message || "Package purchase failed",
+      "error"
+    );
+  }
+}
+
+
+function escapePackageText(value) {
+
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+
+// Load packages when page is available
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+    loadPackages();
+  }
+);
+</script>
+  
 </body>
   </html>
