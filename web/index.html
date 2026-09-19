@@ -2306,29 +2306,27 @@ function escapePackageText(value) {
     .replace(/'/g, "&#039;");
 }
  
-</script>
-
 <script>
-function openAdminPanel() {
+function isZynveroAdmin() {
 
   const telegramId =
     String(
       window.Telegram?.WebApp?.initDataUnsafe?.user?.id || ""
     );
 
-  if (telegramId !== "5624401046") {
-    showToast(
-      "Admin access required.",
-      "error"
-    );
+  return telegramId === "5624401046";
+}
+
+function openAdminPanel() {
+
+  if (!isZynveroAdmin()) {
+    showToast("Admin access required.", "error");
     return;
   }
 
-  document
-    .querySelectorAll(".page")
-    .forEach(page => {
-      page.style.display = "none";
-    });
+  document.querySelectorAll(".page").forEach(page => {
+    page.style.display = "none";
+  });
 
   const adminPage =
     document.getElementById("adminPage");
@@ -2340,32 +2338,23 @@ function openAdminPanel() {
   loadAdminPackages();
 }
 
-
-function showAdminButton() {
-
-  const telegramId =
-    String(
-      window.Telegram?.WebApp?.initDataUnsafe?.user?.id || ""
-    );
+function checkAdminAccess() {
 
   const button =
     document.getElementById("adminPanelButton");
 
-  if (
-    button &&
-    telegramId === "5624401046"
-  ) {
+  if (!button) return;
+
+  if (isZynveroAdmin()) {
     button.style.display = "block";
+  } else {
+    button.style.display = "none";
   }
 }
 
+setInterval(checkAdminAccess, 1000);
+</script>
 
-document.addEventListener(
-  "DOMContentLoaded",
-  () => {
-    showAdminButton();
-  }
-);
 </script>
   
 </body>
